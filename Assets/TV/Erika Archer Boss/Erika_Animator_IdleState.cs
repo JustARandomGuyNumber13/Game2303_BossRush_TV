@@ -7,7 +7,6 @@ using static UnityEngine.UI.GridLayoutGroup;
 
 public class Erika_Animator_IdleState : StateMachineBehaviour
 {
-    [Tooltip("Change phase if health is below")][SerializeField] private int breakHealth;
     Erika_Behavior _behavior;
 
     //OnStateEnter is called when a transition starts and the state machine starts to evaluate this state
@@ -16,7 +15,9 @@ public class Erika_Animator_IdleState : StateMachineBehaviour
         if (_behavior == null)
             _behavior = animator.GetComponent<Erika_Behavior>();
 
-        _behavior?.StartCoroutine(_behavior.AttackCoroutine(4f));
+
+        float delay = Random.Range(1f, 3.5f);
+        _behavior?.StartCoroutine(_behavior.AttackCoroutine(delay));
         _behavior?.DeactivateRolling();
         _behavior?.SetIsCanAim(true);
     }

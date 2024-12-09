@@ -10,9 +10,11 @@ public class Erika_Behavior : MonoBehaviour
     [SerializeField] private GameObject projectile;
     [SerializeField] private Transform projectileLaunchPos;
     [SerializeField] private GameObject KickBox;
+    [SerializeField] private ParticleSystem phaseChangeExplosion;
 
     [Header("Others")]
     [SerializeField] private GameObject Phase1Mobs;
+    [SerializeField] private GameObject Phase2Mobs;
 
     [Header("Stats")]
     [Range(0, 100)][SerializeField] private float rollRate;
@@ -28,9 +30,10 @@ public class Erika_Behavior : MonoBehaviour
     [SerializeField] private readonly int hashIsDead = Animator.StringToHash("isDead");
 
     private Transform _transform;
-    private Damageable health;
+    private Adjusted_Damageable health;
     private Animator _anim;
     private bool isCanAim = true;
+    private int phase;
     private int phase1MobsCount = 4;
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////* Monobehavior methods */
@@ -38,7 +41,7 @@ public class Erika_Behavior : MonoBehaviour
     {
         _transform = transform;
         _anim = GetComponent<Animator>();
-        health = GetComponent<Damageable>();
+        health = GetComponent<Adjusted_Damageable>();
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////* Other handlers */
@@ -65,24 +68,6 @@ public class Erika_Behavior : MonoBehaviour
     {
         _anim.SetBool(hashIsRoll, false);
     }
-    public void ChangePhase(int value)
-    {
-        if (health.GetHealth() == value)
-        {
-            Debug.Log("Change phase");
-            SetIsInvulnerable(true);
-            ResetAnimatorParameters();
-            _anim.SetTrigger(hashSmoke);
-        }
-    }
-    public void SetIsInvulnerable(bool value)
-    { 
-        health.isInvulnerable = value;
-    }
-    public void SetActive(bool value)
-    { 
-        gameObject.SetActive(value);
-    }
     private void ResetAnimatorParameters()
     { 
         _anim.ResetTrigger(hashShoot);
@@ -90,17 +75,54 @@ public class Erika_Behavior : MonoBehaviour
         _anim.ResetTrigger(hashSmoke);
         _anim.SetBool(hashIsRoll, false);
     }
-    public void SpawnMob1()
-    { 
-        Phase1Mobs.SetActive(true);
+
+    public void Die(bool value)
+    {
+        _anim.SetBool(hashIsDead, value);
+    }
+    public void EndGame()
+    {
+        GameManager.instance.GoToNextLevel();
+    }
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// /* Phase Change handlers */
+    public void SetIsInvulnerable(bool value)
+    {
+        health.isInvulnerable = value;
+    }
+    public void SetActive(bool value)
+    {
+        gameObject.SetActive(value);
+    }
+    public void ChangePhase(int value)
+    {
+        if (health.GetHealth() == value)
+        {
+            phase++;
+            SetIsInvulnerable(true);
+            ResetAnimatorParameters();
+            _anim.SetTrigger(hashSmoke);
+        }
+    }
+    public void SpawnMob()
+    {
+        if(phase == 1)
+            Phase1Mobs.SetActive(true);
+        else
+            Phase2Mobs.SetActive(true);
     }
     public void Phase1Check()
     {
         phase1MobsCount--;
         if (phase1MobsCount == 0)
         {
+            SetIsInvulnerable(false);
             SetActive(true);
         }
+    }
+    public void PlayerPhaseChangeExplosion()
+    {
+        phaseChangeExplosion.Play();
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////* Attack handlers */
@@ -154,5 +176,11 @@ public class Erika_Behavior : MonoBehaviour
     private void DisableKickBox()
     {
         KickBox.SetActive(false);
+    }
+
+    /*Testing area*/
+    public void Test()
+    {
+        //Debug.Log(gameObject.name + " is dead");
     }
 }
